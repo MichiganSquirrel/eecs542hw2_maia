@@ -104,6 +104,7 @@ dependencies = [
 
     # ── LLM & API clients ─────────────────────────────────────────
     "anthropic",
+    "google-genai",
     "openai==0.28.1",
     "sentencepiece",  # optional HF models need it
     "tiktoken",

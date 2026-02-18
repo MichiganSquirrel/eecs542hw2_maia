@@ -1,0 +1,92 @@
+class System:
+    """
+    A Python class containing the vision model and the specific neuron to interact with.
+    
+    Attributes
+    ----------
+    neuron_num : int
+        The unit number of the neuron.
+    layer : string
+        The name of the layer where the neuron is located.
+    model_name : string
+        The name of the vision model.
+    model : nn.Module
+        The loaded PyTorch model.
+    device : torch.device
+        The device (CPU/GPU) used for computations.
+
+    Methods
+    -------
+    call_neuron(image_list: List[torch.Tensor]) -> Tuple[List[int], List[str]]
+        Returns the neuron activation for each image in the input image_list as well as the activation map 
+        of the neuron over that image, that highlights the regions of the image where the activations 
+        are higher (encoded into a Base64 string).
+    """
+    
+    def __init__(self, neuron_num: int, layer: str, model_name: str, device: str):
+        """
+        Initializes a neuron object by specifying its number and layer location and the vision model that the neuron belongs to.
+        Parameters
+        -------
+        neuron_num : int
+            The unit number of the neuron.
+        layer : str
+            The name of the layer where the neuron is located.
+        model_name : str
+            The name of the vision model that the neuron is part of.
+        device : str
+            The computational device ('cpu' or 'cuda').
+        """
+        self.neuron_num = neuron_num
+        self.layer = layer
+        self.device = torch.device(f"cuda:{device}" if torch.cuda.is_available() else "cpu")
+    
+    def call_neuron(self, image_list: List[torch.Tensor]) -> Tuple[List[float], List[str]]:
+        """
+        Returns the neuron activation value for each image and an activation map
+        highlighting image regions that cause higher activations.
+        """
+
+class Tools:
+    """
+    A Python class containing tools to interact with units implemented in the System class.
+    """
+
+    def __init__(self, path2save: str, device: str, DatasetExemplars: DatasetExemplars = None, text2image_model_name='sd'):
+        """
+        Initializes the Tools object.
+        """
+
+    def dataset_exemplars(self, system: System) -> List[Tuple[float, str]]
+        """
+        Returns highest-activation exemplar images for the tested neuron.
+        """
+        
+    def edit_images(
+        self,
+        base_images: List[str],
+        editing_prompts: List[str],
+    ) -> Tuple[List[str], List[str]]:
+        """
+        Edits base images with given prompts and returns interleaved originals and edits.
+        """
+
+    def text2image(self, prompt_list: List[str]) -> List[str]:
+        """
+        Generates images from text prompts.
+        """
+
+    def display(self, *args: Union[str, Image.Image]):
+        """
+        Displays text and/or image content in the chat interface.
+        """
+
+    def summarize_images(self, image_list: List[str]) -> str:
+        """
+        Summarizes the common visual concept shared by a list of images.
+        """
+
+    def describe_images(self, image_list: List[str], image_title: List[str]) -> str:
+        """
+        Produces impartial descriptions for each image.
+        """

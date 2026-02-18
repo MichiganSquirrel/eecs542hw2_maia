@@ -1,0 +1,5 @@
+Please provide your final description in the following format:
+[DESCRIPTION]: <final description> ## Be selective (e.g., "dogs running on the grass", not just "dog") and complete (include all relevant aspects). If multiple concepts are present, separate them with logical OR.
+[LABEL]: <final label derived from the most supported hypothesis or hypotheses> ## Concise but complete concept label(s). If multiple distinct concepts are confirmed, use:
+[LABEL 1]: <label 1>
+[LABEL 2]: <label 2>

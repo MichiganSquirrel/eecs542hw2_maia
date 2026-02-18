@@ -250,3 +250,86 @@ def to_antrophic(message: dict[str, Any]) -> list[dict[str, Any]]:
             else:
                 blocks.append({'type': 'image', 'source': {'type': 'url', 'url': url}})
     return blocks
+
+
+def _content_to_gemini_parts(content: Any) -> list[dict[str, Any]]:
+    """Convert OpenAI-style message content into Gemini parts."""
+    if isinstance(content, str):
+        return [{'text': content}]
+
+    parts: list[dict[str, Any]] = []
+    for part in content or []:
+        ptype = part.get('type')
+        if ptype == 'text':
+            text = part.get('text')
+            if text:
+                parts.append({'text': text})
+        elif ptype == 'image_url':
+            url = (part.get('image_url') or {}).get('url') or ''
+            if not url:
+                continue
+            if url.startswith('data:image'):
+                header, b64 = url.split(',', 1)
+                raw = base64.b64decode(b64, validate=True)
+                sniffed = _get_media_type(raw)
+                header_mime = header.split(':', 1)[1].split(';', 1)[0]
+                mime = sniffed or header_mime
+                parts.append(
+                    {'inline_data': {'mime_type': mime, 'data': b64}}
+                )
+            else:
+                # Keep compatibility with plain URLs without hard failing.
+                parts.append({'text': f'[image_url] {url}'})
+    return parts
+
+
+def _content_to_text(content: Any) -> str:
+    """Best-effort flattening for system messages."""
+    if isinstance(content, str):
+        return content
+
+    chunks: list[str] = []
+    for part in content or []:
+        if part.get('type') == 'text':
+            text = part.get('text')
+            if text:
+                chunks.append(text)
+        elif part.get('type') == 'image_url':
+            url = (part.get('image_url') or {}).get('url') or ''
+            if url:
+                chunks.append(f'[image_url] {url}')
+    return '\n'.join(chunks).strip()
+
+
+def to_gemini_messages(
+    messages: list[Message],
+) -> tuple[str | None, list[dict[str, Any]]]:
+    """
+    Convert OpenAI-style messages into Gemini's role/parts format.
+    Returns: (system_instruction, contents)
+    """
+    normalized = normalize_messages(messages, keep_system=True)
+    system_chunks: list[str] = []
+    contents: list[dict[str, Any]] = []
+
+    for msg in normalized:
+        role = msg.get('role')
+        content = msg.get('content')
+        if role == 'system':
+            text = _content_to_text(content)
+            if text:
+                system_chunks.append(text)
+            continue
+
+        gemini_role = 'user' if role == 'user' else 'model'
+        parts = _content_to_gemini_parts(content)
+        if not parts:
+            parts = [{'text': ''}]
+
+        if contents and contents[-1]['role'] == gemini_role:
+            contents[-1]['parts'].extend(parts)
+        else:
+            contents.append({'role': gemini_role, 'parts': parts})
+
+    system_instruction = '\n\n'.join(system_chunks).strip() or None
+    return system_instruction, contents

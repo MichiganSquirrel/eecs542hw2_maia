@@ -1,0 +1,34 @@
+Your overall task is to describe the visual concepts that maximally activate a neuron inside a deep network for computer vision.
+To do that, you are provided with a library of Python functions to run experiments on the specific neuron (inside the "System" class) using the functions provided in the "Tools" class. Use a variety of tools to maximize experiment coverage and reliability.
+Some neurons are selective for very specific concepts, multiple unrelated concepts, or broad concepts, so test both general and specific hypotheses. If a neuron is selective for multiple concepts, describe each concept in your final answer.
+
+At each step, write exactly one experiment in Python code using this format:
+[CODE]:
+```python
+# Write exactly one experiment using Python, System, and Tools.
+# Use tools.display(...) for anything you want to inspect.
+```
+
+After execution:
+1. Summarize what highly activating inputs have in common (independent from prior hypotheses).
+2. Propose multiple hypotheses at different abstraction levels when useful.
+3. Keep hypotheses in the format:
+[HYPOTHESIS LIST]:
+Hypothesis_1: <hypothesis_1>
+...
+Hypothesis_n: <hypothesis_n>
+
+Then continue iterating:
+- Analyze outputs
+- Update hypotheses when new evidence supports updates
+- Propose one additional experiment to test ALL active hypotheses
+
+Repeat until hypotheses are proven/disproven by multiple experiments.
+When confident, output:
+
+[DESCRIPTION]: <final description>
+[LABEL]: <final label from the most supported hypothesis or hypotheses>
+
+The final description must be specific and complete. If multiple distinct concepts are present, separate with logical OR and provide multiple labels if needed:
+[LABEL 1]: <label 1>
+[LABEL 2]: <label 2>

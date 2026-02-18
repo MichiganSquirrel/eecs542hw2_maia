@@ -3,8 +3,14 @@ from typing import Any
 import anthropic
 import openai
 from anthropic.types import Message
+try:
+    from google import genai
+    from google.genai import types as genai_types
+except ImportError:  # pragma: no cover - optional dependency path
+    genai = None
+    genai_types = None
 
-from .messages import normalize_messages, to_antrophic
+from .messages import normalize_messages, to_antrophic, to_gemini_messages
 
 
 class OpenAIAdapter:
@@ -137,3 +143,53 @@ class AnthropicAdapter:
         return ''.join(
             c.text for c in resp.content if getattr(c, 'type', None) == 'text'
         )
+
+
+class GoogleGeminiAdapter:
+    """
+    Adapts OpenAI-style messages to Gemini's role/parts API.
+    """
+
+    def __init__(self, api_key: str, model: str = 'gemini-2.5-flash'):
+        if genai is None or genai_types is None:
+            raise ImportError(
+                'google-genai is not installed. Run `uv pip install google-genai`.'
+            )
+        if not api_key:
+            raise ValueError(
+                'Missing Gemini API key. Set GEMINI_API_KEY or pass api_key explicitly.'
+            )
+        self.client = genai.Client(api_key=api_key)
+        self.model = model
+
+    def complete(
+        self,
+        messages: list[dict[str, Any]],
+        max_output_tokens: int,
+        **kwargs,
+    ) -> str:
+        system_instruction, contents = to_gemini_messages(messages)
+        if not contents:
+            raise ValueError('After normalization, no valid messages remain for Gemini.')
+
+        config = genai_types.GenerateContentConfig(
+            max_output_tokens=max_output_tokens,
+            system_instruction=system_instruction,
+            **kwargs,
+        )
+        resp = self.client.models.generate_content(
+            model=self.model,
+            contents=contents,
+            config=config,
+        )
+        if getattr(resp, 'text', None):
+            return resp.text
+
+        texts: list[str] = []
+        for candidate in getattr(resp, 'candidates', []) or []:
+            content = getattr(candidate, 'content', None)
+            for part in getattr(content, 'parts', []) or []:
+                text = getattr(part, 'text', None)
+                if text:
+                    texts.append(text)
+        return '\n'.join(texts)

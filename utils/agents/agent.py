@@ -5,7 +5,7 @@ import traceback
 from logging import Logger
 from typing import Any
 
-from .adapters import AnthropicAdapter, LocalAdapter, OpenAIAdapter
+from .adapters import AnthropicAdapter, GoogleGeminiAdapter, LocalAdapter, OpenAIAdapter
 
 # Logger + Tokenizer
 log: Logger = logging.getLogger(__name__)
@@ -23,6 +23,9 @@ class SimpleRetry:
         "APIConnection",
         "InternalServer",
         "APIError",
+        "Unavailable",
+        "ResourceExhausted",
+        "DeadlineExceeded",
     )
 
     def __init__(self, max_attempts: int = 5, base: int = 60):
@@ -56,7 +59,7 @@ class Agent:
 
     def __init__(
         self,
-        adapter: OpenAIAdapter | LocalAdapter | AnthropicAdapter,
+        adapter: OpenAIAdapter | LocalAdapter | AnthropicAdapter | GoogleGeminiAdapter,
         retry: SimpleRetry,
         max_output_tokens: int = 4096,
     ):

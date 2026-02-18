@@ -1,6 +1,6 @@
 import os
 
-from .adapters import AnthropicAdapter, LocalAdapter, OpenAIAdapter
+from .adapters import AnthropicAdapter, GoogleGeminiAdapter, LocalAdapter, OpenAIAdapter
 from .agent import Agent, SimpleRetry
 
 
@@ -12,6 +12,8 @@ def infer_provider(model: str) -> str:
         return "anthropic"
     if model.startswith("local-"):
         return "local"
+    if model.startswith("gemini"):
+        return "google"
     raise ValueError(f"Unsupported model prefix: {model}")
 
 
@@ -46,6 +48,11 @@ def create_agent(model: str, **kwargs) -> Agent:
             base_url=kwargs.pop("base_url", "http://localhost:11434/v1"),
             model=model.removeprefix("local-"),
             api_key=kwargs.pop("api_key", "123"),
+        )
+    elif provider == "google":
+        adapter = GoogleGeminiAdapter(
+            api_key=kwargs.pop("api_key", os.getenv("GEMINI_API_KEY")),
+            model=model,
         )
     else:
         raise ValueError(f"Unrecognized provider: {provider}")
